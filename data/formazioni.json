@@ -1,0 +1,1 @@
+{"_nota": "Assenze e impatto per squadra. Esempio: \"Inter\": {\"assenti\": [\"Nome Cognome\"], \"impatto\": -0.05}. L'impatto va da -0.3 a 0.1 (negativo = squadra indebolita)."}
