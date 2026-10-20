@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pronostici Calcio</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#14181f;--mu:#6b7482;--ln:#e3e6eb;--h:#2563eb;--x:#9aa3b2;--a:#e11d48;--ok:#16a34a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#181c25;--tx:#eef0f4;--mu:#98a1b0;--ln:#262b36;--h:#60a5fa;--x:#6b7482;--a:#fb7185;--ok:#4ade80}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:680px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0}.sub{color:var(--mu);font-size:13px;margin-bottom:10px}
+.note{background:var(--card);border:1px solid var(--ln);border-left:3px solid var(--a);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--mu);margin:10px 0}
+.row{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}
+.row button{flex:none;padding:8px 12px;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:8px;font-size:14px}
+.row button.on{background:var(--h);color:#fff;border-color:var(--h)}
+.m{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px;margin-bottom:10px}
+.d{font-size:12px;color:var(--mu)}.t{display:flex;justify-content:space-between;font-weight:600;gap:8px}
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:10px 0 6px}.bar i{display:block}
+.pc{display:flex;justify-content:space-between;font-size:13px;color:var(--mu)}.pc b{color:var(--tx)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tags span{font-size:12px;border:1px solid var(--ln);border-radius:20px;padding:2px 9px;color:var(--mu)}.tags b{color:var(--tx)}
+.pick{background:var(--h);color:#fff!important;border-color:var(--h)!important}.pick b{color:#fff!important}
+.sr{font-size:12px;color:var(--mu);margin-top:8px}.sr div{margin-top:2px}
+details{margin-top:8px;font-size:13px}summary{color:var(--h);cursor:pointer}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
+th,td{padding:5px 6px;text-align:center;border-bottom:1px solid var(--ln)}th:first-child,td:first-child{text-align:left}
+td.adv{font-weight:700;color:var(--ok)}.ex{color:var(--mu);margin:8px 0 0}
+.f{display:inline-block;width:16px;height:16px;border-radius:4px;color:#fff;font-size:10px;line-height:16px;text-align:center;margin-right:2px}
+.V{background:var(--ok)}.P{background:var(--x)}.S{background:var(--a)}
+select{width:100%;padding:9px;border-radius:8px;border:1px solid var(--ln);background:var(--card);color:var(--tx);margin-bottom:10px;font-size:14px}
+.si{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--ln)}.si span:last-child{color:var(--mu)}
+</style>
+</head>
+<body>
+<main>
+<h1>⚽ Pronostici Calcio</h1>
+<div class="sub" id="agg">Caricamento…</div>
+<div class="row" id="lg"></div>
+<div class="row" id="tabs"><button data-t="p" class="on">Partite</button><button data-t="c">Classifica</button><button data-t="s">Serie</button></div>
+<div id="app"></div>
+<div class="note">Le probabilità sono stime statistiche, non certezze: il calcio è molto casuale e le quote dei bookmaker incorporano già quasi tutte le informazioni. Dati: football-data.co.uk. Le serie sono calcolate sulle ultime stagioni disponibili nel campionato.</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pc=v=>Math.round(v*100);
+let D,L,TAB="p",FT="";
+fetch("data.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{D=j;L=Object.keys(j.campionati)[0];
+ const a=new Date(j.aggiornato);$("agg").textContent="Aggiornato il "+a.toLocaleString("it-IT",{dateStyle:"short",timeStyle:"short"});
+ $("lg").innerHTML=Object.entries(j.campionati).map(([k,v])=>`<button data-l="${k}">${esc(v.nome)}</button>`).join("");
+ $("lg").onclick=e=>{if(e.target.dataset.l){L=e.target.dataset.l;FT="";draw()}};
+ $("tabs").onclick=e=>{if(e.target.dataset.t){TAB=e.target.dataset.t;draw()}};draw()})
+ .catch(()=>{$("agg").textContent="";$("app").innerHTML='<div class="note">Dati non ancora disponibili: avvia l’aggiornamento da GitHub Actions (vedi README).</div>'});
+const form=f=>[...(f||"")].map(c=>`<span class="f ${c}">${c}</span>`).join("")||"n/d";
+function draw(){
+ document.querySelectorAll("#lg button").forEach(b=>b.classList.toggle("on",b.dataset.l==L));
+ document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t==TAB));
+ const c=D.campionati[L];$("app").innerHTML=TAB=="p"?partite(c):TAB=="c"?classifica(c):serie(c);
+ const s=$("ft");if(s)s.onchange=()=>{FT=s.value;draw()};}
+const sr=l=>(l||[]).map(s=>`${esc(s.tipo)} da ${s.n} partite`);
+function partite(c){
+ if(!c.partite.length)return'<div class="note">Nessuna partita in programma trovata.</div>';
+ return c.partite.map(m=>{const dt=m.data.split("-").reverse().slice(0,2).join("/");
+ const s1=sr(m.serie_casa).map(x=>`<div>${esc(m.casa)}: ${x}</div>`).join(""),s2=sr(m.serie_trasf).map(x=>`<div>${esc(m.trasf)}: ${x}</div>`).join("");
+ return`<div class="m"><div class="d">${dt} ${esc(m.ora)}</div><div class="t"><span>${esc(m.casa)}</span><span>${esc(m.trasf)}</span></div>
+ <div class="bar"><i style="width:${m.p1
