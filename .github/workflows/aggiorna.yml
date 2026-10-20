@@ -1,0 +1,26 @@
+name: Aggiorna dati
+on:
+  schedule:
+    - cron: "0 */3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python fetch_formazioni.py
+        continue-on-error: true
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+      - run: python fetch_data.py
+      - name: Salva se cambiato
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data.json data
+          git diff --cached --quiet || (git commit -m "Aggiorna dati" && git push)
